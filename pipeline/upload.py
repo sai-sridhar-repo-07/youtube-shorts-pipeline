@@ -60,7 +60,7 @@ def upload_to_youtube(
             "categoryId": "22",  # People & Blogs
         },
         "status": {
-            "privacyStatus": "private",  # Change to "public" or "unlisted" if desired
+            "privacyStatus": "public",
             "selfDeclaredMadeForKids": False,
         },
     }
