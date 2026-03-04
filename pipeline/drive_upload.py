@@ -14,7 +14,7 @@ import subprocess
 import tempfile
 from pathlib import Path
 
-from pipeline.config import load_config
+from pipeline.config import load_config, CONFIG_DIR
 from pipeline.log import get_logger
 from pipeline.upload import upload_to_youtube
 
