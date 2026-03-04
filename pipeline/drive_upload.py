@@ -154,16 +154,15 @@ def _analyze_video_with_gemini(frame_path: Path, filename: str) -> dict:
     """Send a frame to Gemini and get back title, description, tags."""
     import base64
     import json as _json
-    import google.generativeai as genai
+    from google import genai as google_genai
+    from google.genai import types as genai_types
 
     cfg = load_config()
     api_key = cfg.get("GEMINI_API_KEY", "")
     if not api_key:
         raise ValueError("GEMINI_API_KEY not set in config")
 
-    genai.configure(api_key=api_key)
-    model = genai.GenerativeModel("gemini-1.5-flash")
-
+    client = google_genai.Client(api_key=api_key)
     image_data = base64.b64encode(frame_path.read_bytes()).decode()
 
     prompt = f"""You are a YouTube Shorts expert. Analyze this video frame (from a video named "{filename}") and generate metadata for uploading it as a YouTube Short.
@@ -181,10 +180,13 @@ Rules:
 - Tags should be relevant to the video content
 - Description should end with #Shorts"""
 
-    response = model.generate_content([
-        {"mime_type": "image/jpeg", "data": image_data},
-        prompt,
-    ])
+    response = client.models.generate_content(
+        model="gemini-1.5-flash",
+        contents=[
+            genai_types.Part.from_bytes(data=base64.b64decode(image_data), mime_type="image/jpeg"),
+            prompt,
+        ],
+    )
 
     text = response.text.strip()
     # Strip markdown fences if present
