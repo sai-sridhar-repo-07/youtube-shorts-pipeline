@@ -380,23 +380,28 @@ def _fallback_topics() -> list:
 
 
 def _discover_topic(auto_pick: bool) -> str:
-    from topics.reddit import get_reddit_topics
-    from topics.trends import get_google_trends
+    import os
     from topics.rss import get_rss_topics
 
     topics = []
-    try:
-        topics += get_reddit_topics()
-    except Exception as e:
-        log.warning(f"Reddit topics failed: {e}")
-    try:
-        topics += get_google_trends()
-    except Exception as e:
-        log.warning(f"Google Trends failed: {e}")
+    on_ci = os.environ.get("GITHUB_ACTIONS") == "true"
 
-    # RSS feeds work from any IP (GitHub Actions, servers, laptops)
+    if not on_ci:
+        # Reddit and Google Trends only work from home/office IPs, skip on CI
+        from topics.reddit import get_reddit_topics
+        from topics.trends import get_google_trends
+        try:
+            topics += get_reddit_topics()
+        except Exception as e:
+            log.warning(f"Reddit topics failed: {e}")
+        try:
+            topics += get_google_trends()
+        except Exception as e:
+            log.warning(f"Google Trends failed: {e}")
+
+    # RSS feeds work from any IP including GitHub Actions
     if not topics:
-        log.info("Reddit/Trends unavailable — trying RSS feeds...")
+        log.info("Fetching topics from RSS feeds...")
         try:
             topics += get_rss_topics(limit=20)
         except Exception as e:
@@ -436,19 +441,21 @@ def _discover_topic(auto_pick: bool) -> str:
 
 
 def cmd_topics(args) -> None:
-    from topics.reddit import get_reddit_topics
-    from topics.trends import get_google_trends
+    import os
     from topics.rss import get_rss_topics
 
     topics = []
-    try:
-        topics += get_reddit_topics(limit=args.limit // 3)
-    except Exception as e:
-        print(f"Reddit: {e}")
-    try:
-        topics += get_google_trends(limit=args.limit // 3)
-    except Exception as e:
-        print(f"Trends: {e}")
+    if not os.environ.get("GITHUB_ACTIONS") == "true":
+        from topics.reddit import get_reddit_topics
+        from topics.trends import get_google_trends
+        try:
+            topics += get_reddit_topics(limit=args.limit // 3)
+        except Exception as e:
+            print(f"Reddit: {e}")
+        try:
+            topics += get_google_trends(limit=args.limit // 3)
+        except Exception as e:
+            print(f"Trends: {e}")
     try:
         topics += get_rss_topics(limit=args.limit // 3)
     except Exception as e:
