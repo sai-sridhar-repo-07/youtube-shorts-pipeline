@@ -132,36 +132,242 @@ def run_pipeline(args) -> None:
 
 
 _FALLBACK_TOPICS = [
-    "Hidden habits of billionaires that changed their lives",
+    # Science & Space
     "Mind-blowing space discoveries in 2025",
     "AI breakthroughs nobody is talking about",
-    "The psychology of success explained in 60 seconds",
     "Ancient history facts that will blow your mind",
     "How the human brain actually works",
-    "Life-changing productivity hacks used by CEOs",
-    "The science of sleep and why most people get it wrong",
     "Futuristic technologies arriving sooner than you think",
     "Ocean mysteries scientists still cannot explain",
-    "The dark side of social media algorithms",
-    "Simple money habits that build real wealth",
-    "How animals sense things humans cannot",
-    "The real reason why most diets fail",
     "Quantum computing explained simply",
-    "Hidden features in everyday technology",
     "The world's most extreme natural phenomena",
-    "How your gut controls your mood and brain",
-    "Secrets of the world's oldest people",
-    "The science behind why music gives you chills",
     "Untold stories from the International Space Station",
-    "Why your memory is less reliable than you think",
-    "The truth about cold water swimming",
-    "How cities of the future will look",
-    "Bizarre animal abilities you never knew existed",
-    "The real story of how the internet was created",
-    "Why walking is the most underrated exercise",
-    "The psychology of habits and how to change them",
     "Strange deep sea creatures discovered recently",
     "How climate change is reshaping the world map",
+    "The science behind why music gives you chills",
+    "What happens inside a black hole",
+    "How CRISPR gene editing will change medicine",
+    "The surprising science of déjà vu",
+    "Why scientists are excited about nuclear fusion",
+    "The mystery of dark matter finally explained",
+    "How the James Webb telescope changed astronomy",
+    "Why some animals never seem to age",
+    "The science of lightning explained simply",
+    "What causes northern lights and where to see them",
+    "How earthquakes are predicted by scientists today",
+    "The strange physics of time dilation",
+    "Why the ocean is still mostly unexplored",
+    "How satellites keep the internet running",
+    "The truth about parallel universes in physics",
+    "Why Mars is the next frontier for humanity",
+    "How viruses evolved alongside humans for millions of years",
+    "The science of supervolcanoes and when they erupt",
+    "What would happen if the moon disappeared",
+    # Psychology & Mind
+    "The psychology of success explained in 60 seconds",
+    "Why your memory is less reliable than you think",
+    "The psychology of habits and how to change them",
+    "The dark side of social media algorithms",
+    "How gut bacteria control your mood and decisions",
+    "The real reason procrastination happens",
+    "Why people believe in conspiracy theories",
+    "The science behind falling in love",
+    "How color affects your mood and productivity",
+    "The psychology of fear and how to overcome it",
+    "Why humans are wired to compare themselves to others",
+    "The science of confidence and how to build it",
+    "How childhood experiences shape adult behavior",
+    "The truth about multitasking and your brain",
+    "Why first impressions are almost impossible to change",
+    "The psychology behind why we buy things we don't need",
+    "How your brain makes decisions without you knowing",
+    "The surprising psychology of happiness",
+    "Why boredom is actually good for creativity",
+    "The science of motivation that most people misunderstand",
+    "How sleep deprivation changes your personality",
+    "Why humans are naturally terrible at risk assessment",
+    "The psychology of manipulation and how to spot it",
+    "How meditation physically changes your brain",
+    "The science of intuition and gut feelings",
+    # Health & Fitness
+    "The science of sleep and why most people get it wrong",
+    "Why walking is the most underrated exercise",
+    "The real reason why most diets fail",
+    "How your gut controls your mood and brain",
+    "Secrets of the world's oldest people",
+    "The truth about cold water swimming",
+    "Why sitting is the new smoking for your health",
+    "The hidden benefits of fasting backed by science",
+    "How stress physically damages your body",
+    "The surprising effects of cold showers on your health",
+    "Why doctors say breakfast might not be the most important meal",
+    "How sunlight affects your mental health and hormones",
+    "The science of longevity that doctors don't teach",
+    "Why strength training is more important than cardio",
+    "The truth about supplements most people waste money on",
+    "How dehydration secretly affects your brain",
+    "The science of why sugar is more addictive than cocaine",
+    "Why your posture affects your mood and confidence",
+    "The real cause of inflammation and how to reduce it",
+    "How breathing techniques can lower anxiety instantly",
+    "The surprising link between exercise and memory",
+    "Why most people need more vitamin D than they think",
+    "The truth about organic food and whether it matters",
+    "How gut microbiome determines your health outcomes",
+    "The science of why we need 8 hours of sleep",
+    # Money & Finance
+    "Simple money habits that build real wealth",
+    "Hidden habits of billionaires that changed their lives",
+    "Life-changing productivity hacks used by CEOs",
+    "Why most people stay poor despite working hard",
+    "The real reason the rich keep getting richer",
+    "How compound interest makes ordinary people millionaires",
+    "The psychology of spending money you don't have",
+    "Why most people retire broke and how to avoid it",
+    "The truth about passive income that gurus won't tell you",
+    "How to negotiate your salary and get 20 percent more",
+    "The surprising habits of people who achieve financial freedom",
+    "Why inflation secretly destroys your savings",
+    "How billionaires think about time and money differently",
+    "The real cost of buying a house versus renting",
+    "Why most small businesses fail in the first year",
+    "How credit scores control your financial destiny",
+    "The hidden fees that drain your retirement account",
+    "Why most investment advice is designed to make others rich",
+    "The science of smart decision making when spending",
+    "How the world's wealthiest people protect their money",
+    # Technology
+    "Hidden features in everyday technology",
+    "The real story of how the internet was created",
+    "How your smartphone knows everything about you",
+    "The AI that can clone any voice in seconds",
+    "Why electric vehicles are cheaper than gas cars now",
+    "How hackers break into your accounts and how to stop them",
+    "The chip shortage that changed the entire world economy",
+    "Why tech companies know you better than your family",
+    "The technology that will replace smartphones in 10 years",
+    "How self-driving cars actually work under the hood",
+    "The dark side of facial recognition technology",
+    "Why 5G is changing everything faster than expected",
+    "How renewable energy is finally beating fossil fuels",
+    "The robot that can do any job better than humans",
+    "Why your old phone data never truly disappears",
+    "How deepfake technology is becoming impossible to detect",
+    "The real story behind the rise and fall of crypto",
+    "Why batteries are the most important technology of this decade",
+    "How smart home devices spy on your daily life",
+    "The technology that allows humans to control computers with thoughts",
+    "Why open source software runs most of the internet",
+    "How GPS works and why it changed everything",
+    "The algorithm that decides what you see on every app",
+    "Why passwords are dead and what replaces them",
+    "How the cloud stores all human knowledge",
+    # History & Mysteries
+    "Ancient civilizations more advanced than we think",
+    "The real story behind Cleopatra nobody teaches in school",
+    "How the Roman Empire actually fell according to historians",
+    "Mysteries of ancient Egypt that science still cannot explain",
+    "The forgotten inventions that were ahead of their time",
+    "What really caused the extinction of the dinosaurs",
+    "The untold story of women who changed history",
+    "Conspiracy theories that turned out to be true",
+    "The ancient buildings impossible to construct today",
+    "How the Silk Road connected the ancient world",
+    "The real story of Nikola Tesla and why he was erased",
+    "Ancient medical practices that modern science confirms work",
+    "The strange disappearances that historians cannot explain",
+    "How writing was invented and changed human civilization",
+    "The forgotten empires that ruled the world",
+    "Ancient astronomical knowledge that baffles modern scientists",
+    "The true origin of democracy and how it almost died",
+    "How the Black Plague changed the course of history",
+    "The real story behind famous historical paintings",
+    "Lost cities discovered in the last decade by archaeologists",
+    # Nature & Animals
+    "How animals sense things humans cannot",
+    "Bizarre animal abilities you never knew existed",
+    "The most dangerous animals you never knew existed",
+    "How trees secretly communicate with each other underground",
+    "Why insects are disappearing and why that matters",
+    "The intelligence of crows that rivals human children",
+    "How dolphins use echolocation with incredible precision",
+    "Why some animals hibernate and the science behind it",
+    "The most extreme animal migrations on earth",
+    "How plants fight back against insects and animals",
+    "The secret life of fungi beneath every forest floor",
+    "Why ocean coral reefs are disappearing so fast",
+    "How bears prepare for winter with stunning biology",
+    "The animals that can survive in outer space",
+    "Why sharks have survived for 450 million years unchanged",
+    "How bees know exactly when flowers will bloom",
+    "The mystery of why birds never get lost migrating",
+    "How octopus intelligence rivals that of mammals",
+    "Why wolves change entire ecosystems when introduced",
+    "The endangered species being brought back from extinction",
+    # Personal Development
+    "The science of confidence and self-belief",
+    "Why most people never reach their full potential",
+    "The daily routines of the most successful people on earth",
+    "How to build discipline when motivation always fails",
+    "The surprising benefits of saying no more often",
+    "Why rejection makes you stronger according to science",
+    "How to develop a growth mindset that changes everything",
+    "The real reason why people give up on their dreams",
+    "How to train your brain to focus like a champion",
+    "The science of willpower and why you keep running out",
+    "Why the people you surround yourself with determine success",
+    "How to overcome imposter syndrome that holds you back",
+    "The morning habits that separate successful people from everyone else",
+    "Why reading books makes you more successful according to research",
+    "How emotional intelligence predicts success better than IQ",
+    "The psychology of resilience and how to build it",
+    "Why forgiveness is scientifically proven to improve your life",
+    "How to stop overthinking and take action immediately",
+    "The power of saying exactly what you mean",
+    "Why journaling is one of the most powerful habits",
+    # Future & Society
+    "How cities of the future will look",
+    "The jobs that will disappear in the next 10 years",
+    "Why the 4 day work week is becoming mainstream",
+    "How AI is changing what it means to be human",
+    "The future of food and why we will stop eating meat",
+    "Why remote work is reshaping entire cities and economies",
+    "How population decline is the real crisis nobody talks about",
+    "The countries preparing for climate migration now",
+    "Why loneliness has become the biggest health crisis of our time",
+    "How social media is rewiring an entire generation",
+    "The death of cash and what digital currency means for you",
+    "Why trust in institutions is at an all-time low",
+    "How the gig economy trapped an entire generation",
+    "The surprising countries leading the renewable energy revolution",
+    "Why privacy is becoming the luxury good of the future",
+    # Food & Lifestyle
+    "The surprising origins of your favorite everyday foods",
+    "Why coffee is good for you according to new science",
+    "The most nutritious foods that cost almost nothing",
+    "How your diet affects your mental health more than you think",
+    "Why spicy food addicts actually live longer",
+    "The science behind why we overeat even when full",
+    "How fermented foods are revolutionizing gut health",
+    "The foods that secretly cause inflammation in your body",
+    "Why some cultures live past 100 eating specific diets",
+    "How intermittent fasting changes your body chemistry",
+    # Miscellaneous Mind-Blowing
+    "The optical illusions that break your brain",
+    "Why yawning is contagious and science still cannot explain why",
+    "The random facts about the human body that are hard to believe",
+    "How fingerprints form and why every one is unique",
+    "Why left-handed people have unique brain advantages",
+    "The science of laughter and why humans do it",
+    "How your name affects your personality and career",
+    "Why dreams feel so real and what they actually mean",
+    "The paradoxes that even geniuses cannot solve",
+    "Why humans are the only animals that cry emotional tears",
+    "How your birth order shapes your entire personality",
+    "The surprising ways smell controls your memory",
+    "Why goosebumps exist and what they reveal about evolution",
+    "The hidden meanings behind common everyday phrases",
+    "How twins develop different personalities despite same DNA",
 ]
 
 
@@ -176,6 +382,7 @@ def _fallback_topics() -> list:
 def _discover_topic(auto_pick: bool) -> str:
     from topics.reddit import get_reddit_topics
     from topics.trends import get_google_trends
+    from topics.rss import get_rss_topics
 
     topics = []
     try:
@@ -187,8 +394,16 @@ def _discover_topic(auto_pick: bool) -> str:
     except Exception as e:
         log.warning(f"Google Trends failed: {e}")
 
+    # RSS feeds work from any IP (GitHub Actions, servers, laptops)
     if not topics:
-        log.warning("No topics from Reddit/Trends — using built-in fallback list")
+        log.info("Reddit/Trends unavailable — trying RSS feeds...")
+        try:
+            topics += get_rss_topics(limit=20)
+        except Exception as e:
+            log.warning(f"RSS topics failed: {e}")
+
+    if not topics:
+        log.warning("All topic sources failed — using built-in fallback list")
         topics = _fallback_topics()
 
     # Deduplicate
@@ -223,16 +438,21 @@ def _discover_topic(auto_pick: bool) -> str:
 def cmd_topics(args) -> None:
     from topics.reddit import get_reddit_topics
     from topics.trends import get_google_trends
+    from topics.rss import get_rss_topics
 
     topics = []
     try:
-        topics += get_reddit_topics(limit=args.limit // 2)
+        topics += get_reddit_topics(limit=args.limit // 3)
     except Exception as e:
         print(f"Reddit: {e}")
     try:
-        topics += get_google_trends(limit=args.limit // 2)
+        topics += get_google_trends(limit=args.limit // 3)
     except Exception as e:
         print(f"Trends: {e}")
+    try:
+        topics += get_rss_topics(limit=args.limit // 3)
+    except Exception as e:
+        print(f"RSS: {e}")
 
     print(f"\nDiscovered {len(topics)} topics:")
     for i, t in enumerate(topics[:args.limit], 1):

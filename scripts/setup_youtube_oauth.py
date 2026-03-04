@@ -9,7 +9,11 @@ from pathlib import Path
 
 CONFIG_DIR = Path.home() / ".shorts-pipeline"
 TOKEN_FILE = CONFIG_DIR / "youtube_token.json"
-SCOPES = ["https://www.googleapis.com/auth/youtube.upload"]
+SCOPES = [
+    "https://www.googleapis.com/auth/youtube.upload",
+    "https://www.googleapis.com/auth/youtube",           # needed for public visibility
+    "https://www.googleapis.com/auth/youtube.force-ssl", # needed for captions
+]
 
 
 def main():

@@ -7,7 +7,11 @@ from pipeline.retry import with_retry
 log = get_logger("upload")
 
 YOUTUBE_TOKEN = CONFIG_DIR / "youtube_token.json"
-SCOPES = ["https://www.googleapis.com/auth/youtube.upload"]
+SCOPES = [
+    "https://www.googleapis.com/auth/youtube.upload",
+    "https://www.googleapis.com/auth/youtube",
+    "https://www.googleapis.com/auth/youtube.force-ssl",
+]
 
 
 def _get_youtube_client():
