@@ -58,24 +58,37 @@ def _burn_captions_pil(video_in: Path, srt_path: Path, video_out: Path) -> None:
     w, h = VIDEO_WIDTH, VIDEO_HEIGHT
     fps = FPS
     bytes_per_frame = w * h * 3
-    font_size = int(w * 0.06)
+    font_size = int(w * 0.10)  # 10% of width = ~108px on 1080p — big and readable
 
-    # Load a system font
+    # Font search order: macOS paths first, then Linux/Ubuntu (GitHub Actions)
     font = None
     for fp in [
+        # macOS
         "/System/Library/Fonts/Supplemental/Arial Bold.ttf",
+        "/System/Library/Fonts/Supplemental/Impact.ttf",
+        "/Library/Fonts/Arial Bold.ttf",
         "/System/Library/Fonts/Helvetica.ttc",
-        "/System/Library/Fonts/Arial.ttf",
-        "/System/Library/Fonts/SF-Pro-Display-Regular.otf",
+        # Ubuntu / Debian (GitHub Actions)
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+        "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",
+        "/usr/share/fonts/truetype/ubuntu/Ubuntu-B.ttf",
+        "/usr/share/fonts/truetype/freefont/FreeSansBold.ttf",
+        # Fallback any bold sans
+        "/usr/share/fonts/truetype/noto/NotoSans-Bold.ttf",
     ]:
         try:
             font = ImageFont.truetype(fp, font_size)
+            log.info(f"Caption font: {fp} @ {font_size}px")
             break
         except Exception:
             pass
     if font is None:
-        log.warning("No truetype font found, using PIL default font (small)")
-        font = ImageFont.load_default()
+        # Last resort — install a font via apt in the workflow, but don't crash
+        log.warning("No truetype font found — captions will be tiny. Add fonts-dejavu to your workflow.")
+        try:
+            font = ImageFont.load_default(size=font_size)
+        except TypeError:
+            font = ImageFont.load_default()
 
     cmd_decode = [
         "ffmpeg", "-i", str(video_in),
@@ -114,26 +127,49 @@ def _burn_captions_pil(video_in: Path, srt_path: Path, video_out: Path) -> None:
 
             if caption_text:
                 draw = ImageDraw.Draw(img)
-                # Measure
-                try:
-                    bbox = draw.textbbox((0, 0), caption_text, font=font)
-                    tw = bbox[2] - bbox[0]
-                    th = bbox[3] - bbox[1]
-                except AttributeError:
-                    tw, th = draw.textsize(caption_text, font=font)
 
-                x = (w - tw) // 2
-                y = h - int(h * 0.14) - th
+                # Word-wrap caption to fit within 90% of frame width
+                max_w = int(w * 0.90)
+                words = caption_text.split()
+                lines, line = [], []
+                for word in words:
+                    test = " ".join(line + [word])
+                    try:
+                        tw = draw.textbbox((0, 0), test, font=font)[2]
+                    except AttributeError:
+                        tw, _ = draw.textsize(test, font=font)
+                    if tw <= max_w:
+                        line.append(word)
+                    else:
+                        if line:
+                            lines.append(" ".join(line))
+                        line = [word]
+                if line:
+                    lines.append(" ".join(line))
 
-                # Thick black outline (multiple passes at 4px offset) then white text
-                for dx, dy in [
-                    (-4, -4), (-4, 0), (-4, 4),
-                    (0, -4),           (0,  4),
-                    (4, -4),  (4,  0), (4,  4),
-                    (-2, 0),  (2,  0), (0, -2), (0, 2),
-                ]:
-                    draw.text((x + dx, y + dy), caption_text, font=font, fill=(0, 0, 0))
-                draw.text((x, y), caption_text, font=font, fill=(255, 255, 255))
+                # Measure total block height
+                line_height = font_size + int(font_size * 0.2)
+                block_h = line_height * len(lines)
+
+                # Position: bottom 15% of frame
+                block_y = h - int(h * 0.15) - block_h
+
+                outline = max(4, font_size // 14)
+                offsets = [
+                    (-outline, -outline), (0, -outline), (outline, -outline),
+                    (-outline, 0),                        (outline, 0),
+                    (-outline,  outline), (0,  outline), (outline,  outline),
+                ]
+                for li, text_line in enumerate(lines):
+                    try:
+                        lw = draw.textbbox((0, 0), text_line, font=font)[2]
+                    except AttributeError:
+                        lw, _ = draw.textsize(text_line, font=font)
+                    x = (w - lw) // 2
+                    y = block_y + li * line_height
+                    for dx, dy in offsets:
+                        draw.text((x + dx, y + dy), text_line, font=font, fill=(0, 0, 0))
+                    draw.text((x, y), text_line, font=font, fill=(255, 255, 255))
 
             proc_enc.stdin.write(img.tobytes())
             frame_num += 1
