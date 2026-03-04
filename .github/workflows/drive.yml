@@ -1,0 +1,47 @@
+name: Drive Video Upload
+
+on:
+  schedule:
+    - cron: '0 7 * * *'   # 12:30 PM IST (07:00 UTC) — between your two daily shorts
+  workflow_dispatch:        # allows manual trigger from GitHub UI
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write       # needed to commit drive_uploaded.txt back to repo
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install FFmpeg
+        run: sudo apt-get install -y ffmpeg
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Restore config and YouTube token
+        run: |
+          mkdir -p ~/.shorts-pipeline
+          echo "${{ secrets.PIPELINE_CONFIG_B64 }}" | base64 -d > ~/.shorts-pipeline/config.json
+          echo "${{ secrets.YOUTUBE_TOKEN_B64 }}"   | base64 -d > ~/.shorts-pipeline/youtube_token.json
+          chmod 600 ~/.shorts-pipeline/config.json
+          chmod 600 ~/.shorts-pipeline/youtube_token.json
+
+      - name: Upload 1 video from Drive
+        run: python -m pipeline drive --folder "${{ secrets.DRIVE_FOLDER_URL }}" --limit 1
+
+      - name: Save upload tracking (commit drive_uploaded.txt)
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/drive_uploaded.txt
+          git diff --cached --quiet || git commit -m "track uploaded drive video [skip ci]"
+          git push

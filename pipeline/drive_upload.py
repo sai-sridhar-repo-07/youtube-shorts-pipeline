@@ -14,11 +14,14 @@ import subprocess
 import tempfile
 from pathlib import Path
 
-from pipeline.config import load_config, CONFIG_DIR
+from pipeline.config import load_config
 from pipeline.log import get_logger
 from pipeline.upload import upload_to_youtube
 
 log = get_logger("drive_upload")
+
+# Tracking file lives in the repo so GitHub Actions remembers uploads across runs
+_UPLOADED_LOG = Path(__file__).parent.parent / "data" / "drive_uploaded.txt"
 
 # Supported video extensions on Drive
 VIDEO_MIME_TYPES = [
@@ -32,7 +35,6 @@ VIDEO_MIME_TYPES = [
 ]
 
 # Track uploaded Drive files to avoid duplicates
-_UPLOADED_LOG = CONFIG_DIR / "drive_uploaded.txt"
 
 
 def _extract_folder_id(folder_url_or_id: str) -> str:
@@ -104,7 +106,7 @@ def _already_uploaded(file_id: str) -> bool:
 
 
 def _mark_uploaded(file_id: str) -> None:
-    CONFIG_DIR.mkdir(parents=True, exist_ok=True)
+    _UPLOADED_LOG.parent.mkdir(parents=True, exist_ok=True)
     with open(_UPLOADED_LOG, "a") as f:
         f.write(file_id + "\n")
 
