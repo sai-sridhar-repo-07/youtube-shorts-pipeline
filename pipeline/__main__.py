@@ -131,6 +131,48 @@ def run_pipeline(args) -> None:
         print(f"\n✓ Already uploaded: {url}")
 
 
+_FALLBACK_TOPICS = [
+    "Hidden habits of billionaires that changed their lives",
+    "Mind-blowing space discoveries in 2025",
+    "AI breakthroughs nobody is talking about",
+    "The psychology of success explained in 60 seconds",
+    "Ancient history facts that will blow your mind",
+    "How the human brain actually works",
+    "Life-changing productivity hacks used by CEOs",
+    "The science of sleep and why most people get it wrong",
+    "Futuristic technologies arriving sooner than you think",
+    "Ocean mysteries scientists still cannot explain",
+    "The dark side of social media algorithms",
+    "Simple money habits that build real wealth",
+    "How animals sense things humans cannot",
+    "The real reason why most diets fail",
+    "Quantum computing explained simply",
+    "Hidden features in everyday technology",
+    "The world's most extreme natural phenomena",
+    "How your gut controls your mood and brain",
+    "Secrets of the world's oldest people",
+    "The science behind why music gives you chills",
+    "Untold stories from the International Space Station",
+    "Why your memory is less reliable than you think",
+    "The truth about cold water swimming",
+    "How cities of the future will look",
+    "Bizarre animal abilities you never knew existed",
+    "The real story of how the internet was created",
+    "Why walking is the most underrated exercise",
+    "The psychology of habits and how to change them",
+    "Strange deep sea creatures discovered recently",
+    "How climate change is reshaping the world map",
+]
+
+
+def _fallback_topics() -> list:
+    import datetime
+    day = datetime.date.today().toordinal()
+    # Rotate through list so each day gets a different topic first
+    rotated = _FALLBACK_TOPICS[day % len(_FALLBACK_TOPICS):] + _FALLBACK_TOPICS[:day % len(_FALLBACK_TOPICS)]
+    return rotated
+
+
 def _discover_topic(auto_pick: bool) -> str:
     from topics.reddit import get_reddit_topics
     from topics.trends import get_google_trends
@@ -146,8 +188,8 @@ def _discover_topic(auto_pick: bool) -> str:
         log.warning(f"Google Trends failed: {e}")
 
     if not topics:
-        print("Could not discover any topics. Try --topic instead.")
-        sys.exit(1)
+        log.warning("No topics from Reddit/Trends — using built-in fallback list")
+        topics = _fallback_topics()
 
     # Deduplicate
     seen = set()

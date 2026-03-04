@@ -5,7 +5,10 @@ from pipeline.log import get_logger
 log = get_logger("topics.reddit")
 
 DEFAULT_SUBREDDITS = ["technology", "worldnews", "science", "todayilearned"]
-HEADERS = {"User-Agent": "shorts-pipeline/1.0 (automated video creation)"}
+HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+    "Accept": "application/json",
+}
 
 
 def get_reddit_topics(subreddits: list = None, limit: int = 10) -> list:
