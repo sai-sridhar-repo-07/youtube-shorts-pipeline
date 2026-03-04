@@ -13,6 +13,7 @@ SCOPES = [
     "https://www.googleapis.com/auth/youtube.upload",
     "https://www.googleapis.com/auth/youtube",           # needed for public visibility
     "https://www.googleapis.com/auth/youtube.force-ssl", # needed for captions
+    "https://www.googleapis.com/auth/drive.readonly",    # needed for Drive folder upload
 ]
 
 

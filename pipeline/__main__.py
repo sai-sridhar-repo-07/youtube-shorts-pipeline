@@ -495,6 +495,12 @@ def main() -> None:
     # setup
     sub.add_parser("setup", help="Run the setup wizard")
 
+    # drive — upload videos from a Google Drive folder
+    drive_p = sub.add_parser("drive", help="Upload videos from a Google Drive folder to YouTube")
+    drive_p.add_argument("--folder", required=True, help="Google Drive folder URL or ID")
+    drive_p.add_argument("--limit", type=int, default=0, help="Max videos to upload (0 = all)")
+    drive_p.add_argument("--reupload", action="store_true", help="Re-upload already uploaded videos")
+
     args = parser.parse_args()
 
     if args.command == "setup":
@@ -508,6 +514,14 @@ def main() -> None:
         args.discover = False
         args.auto_pick = False
         run_pipeline(args)
+    elif args.command == "drive":
+        from pipeline.drive_upload import upload_drive_folder
+        urls = upload_drive_folder(
+            folder_url=args.folder,
+            limit=args.limit,
+            skip_uploaded=not args.reupload,
+        )
+        print(f"\nDone. Uploaded {len(urls)} video(s).")
     else:
         parser.print_help()
 
