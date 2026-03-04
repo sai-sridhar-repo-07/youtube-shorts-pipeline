@@ -1,0 +1,12 @@
+anthropic>=0.28
+google-genai>=1.0
+elevenlabs>=1.0
+openai-whisper>=20231117
+google-api-python-client>=2.100
+google-auth-oauthlib>=1.1
+google-auth-httplib2>=0.2
+pytrends>=4.9
+ddgs>=0.1
+Pillow>=10.0
+requests>=2.31
+feedparser>=6.0

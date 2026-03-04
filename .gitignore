@@ -1,0 +1,8 @@
+test.txt
+client_secrets.json
+*.token.json
+youtube_token.json
+config.json
+__pycache__/
+.venv/
+*.pyc

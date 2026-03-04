@@ -1,0 +1,40 @@
+name: Daily YouTube Shorts
+
+on:
+  schedule:
+    - cron: '0 9 * * *'   # 9am UTC daily
+  workflow_dispatch:        # allows manual trigger from GitHub UI
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install FFmpeg
+        run: sudo apt-get install -y ffmpeg
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Restore config and YouTube token
+        run: |
+          mkdir -p ~/.shorts-pipeline
+          echo "${{ secrets.PIPELINE_CONFIG_B64 }}" | base64 -d > ~/.shorts-pipeline/config.json
+          echo "${{ secrets.YOUTUBE_TOKEN_B64 }}"   | base64 -d > ~/.shorts-pipeline/youtube_token.json
+          chmod 600 ~/.shorts-pipeline/config.json
+          chmod 600 ~/.shorts-pipeline/youtube_token.json
+
+      - name: Run pipeline
+        run: python -m pipeline run --discover --auto-pick
+
+      - name: Show output video path
+        run: ls -lh ~/.shorts-pipeline/jobs/*/final_*.mp4 | tail -1
