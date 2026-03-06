@@ -45,31 +45,46 @@ def _macos_say_fallback(script: str, out_path: Path) -> None:
     log.info(f"macOS say fallback saved: {out_path.name}")
 
 
-def _espeak_fallback(script: str, out_path: Path) -> None:
-    """Linux fallback — uses espeak-ng (available on Ubuntu/GitHub Actions)."""
-    wav = out_path.with_suffix(".wav")
-    subprocess.run(
-        ["espeak-ng", "-s", "145", "-p", "50", "-a", "180",
-         "-w", str(wav), script],
-        check=True
-    )
-    subprocess.run(
-        ["ffmpeg", "-y", "-i", str(wav), str(out_path)],
-        capture_output=True, check=True
-    )
-    wav.unlink(missing_ok=True)
-    log.info(f"espeak-ng fallback saved: {out_path.name}")
+def _edge_tts_fallback(script: str, out_path: Path) -> None:
+    """Free Microsoft Edge neural TTS — works on any OS, no API key needed."""
+    import asyncio
+    import edge_tts
+
+    voice = "en-US-AndrewMultilingualNeural"  # natural male voice
+
+    async def _run():
+        communicate = edge_tts.Communicate(script, voice)
+        await communicate.save(str(out_path))
+
+    asyncio.run(_run())
+    log.info(f"edge-tts voiceover saved: {out_path.name}")
 
 
 def _tts_fallback(script: str, out_path: Path) -> None:
-    """Choose the right TTS fallback based on the OS."""
+    """Try edge-tts first (free, neural quality), then OS fallback."""
+    try:
+        log.warning("ElevenLabs unavailable — falling back to edge-tts (free Microsoft neural voice)")
+        _edge_tts_fallback(script, out_path)
+        return
+    except Exception as e:
+        log.warning(f"edge-tts failed: {e}")
+
     import platform
     if platform.system() == "Darwin":
-        log.warning("ElevenLabs failed — falling back to macOS say")
+        log.warning("Falling back to macOS say")
         _macos_say_fallback(script, out_path)
     else:
-        log.warning("ElevenLabs failed — falling back to espeak-ng")
-        _espeak_fallback(script, out_path)
+        log.warning("Falling back to espeak-ng")
+        subprocess.run(
+            ["espeak-ng", "-s", "145", "-p", "50", "-a", "180",
+             "-w", str(out_path.with_suffix(".wav")), script],
+            check=True
+        )
+        subprocess.run(
+            ["ffmpeg", "-y", "-i", str(out_path.with_suffix(".wav")), str(out_path)],
+            capture_output=True, check=True
+        )
+        out_path.with_suffix(".wav").unlink(missing_ok=True)
 
 
 def generate_voiceover(script: str, job_dir: Path, lang: str = "en") -> Path:

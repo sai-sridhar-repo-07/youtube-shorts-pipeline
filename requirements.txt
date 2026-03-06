@@ -9,4 +9,5 @@ pytrends>=4.9
 ddgs>=0.1
 Pillow>=10.0
 requests>=2.31
+edge-tts>=6.1
 feedparser>=6.0
