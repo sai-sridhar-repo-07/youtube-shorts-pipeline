@@ -34,7 +34,7 @@ def _call_elevenlabs(script: str, out_path: Path, api_key: str, voice_id: str) -
 
 
 def _macos_say_fallback(script: str, out_path: Path) -> None:
-    log.warning("Falling back to macOS 'say' command")
+    """macOS only — uses the built-in 'say' command."""
     aiff = out_path.with_suffix(".aiff")
     subprocess.run(["say", "-o", str(aiff), script], check=True)
     subprocess.run(
@@ -43,6 +43,33 @@ def _macos_say_fallback(script: str, out_path: Path) -> None:
     )
     aiff.unlink(missing_ok=True)
     log.info(f"macOS say fallback saved: {out_path.name}")
+
+
+def _espeak_fallback(script: str, out_path: Path) -> None:
+    """Linux fallback — uses espeak-ng (available on Ubuntu/GitHub Actions)."""
+    wav = out_path.with_suffix(".wav")
+    subprocess.run(
+        ["espeak-ng", "-s", "145", "-p", "50", "-a", "180",
+         "-w", str(wav), script],
+        check=True
+    )
+    subprocess.run(
+        ["ffmpeg", "-y", "-i", str(wav), str(out_path)],
+        capture_output=True, check=True
+    )
+    wav.unlink(missing_ok=True)
+    log.info(f"espeak-ng fallback saved: {out_path.name}")
+
+
+def _tts_fallback(script: str, out_path: Path) -> None:
+    """Choose the right TTS fallback based on the OS."""
+    import platform
+    if platform.system() == "Darwin":
+        log.warning("ElevenLabs failed — falling back to macOS say")
+        _macos_say_fallback(script, out_path)
+    else:
+        log.warning("ElevenLabs failed — falling back to espeak-ng")
+        _espeak_fallback(script, out_path)
 
 
 def generate_voiceover(script: str, job_dir: Path, lang: str = "en") -> Path:
@@ -62,5 +89,5 @@ def generate_voiceover(script: str, job_dir: Path, lang: str = "en") -> Path:
         except Exception as e:
             log.warning(f"ElevenLabs failed: {e}")
 
-    _macos_say_fallback(script, out_path)
+    _tts_fallback(script, out_path)
     return out_path

@@ -20,8 +20,8 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install FFmpeg and fonts
-        run: sudo apt-get install -y ffmpeg fonts-dejavu-core fonts-liberation
+      - name: Install FFmpeg, fonts and espeak-ng
+        run: sudo apt-get install -y ffmpeg fonts-dejavu-core fonts-liberation espeak-ng
 
       - name: Install dependencies
         run: pip install -r requirements.txt
