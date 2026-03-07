@@ -7,7 +7,33 @@ from pipeline.retry import with_retry
 
 log = get_logger("broll")
 
-EFFECTS = ["zoom_in", "pan_right", "zoom_out", "pan_left", "pan_up", "pan_down"]
+EFFECTS = [
+    "zoom_in",
+    "zoom_out",
+    "pan_right",
+    "pan_left",
+    "pan_up",
+    "pan_down",
+    "zoom_in_right",      # zoom in + pan right simultaneously
+    "zoom_in_left",       # zoom in + pan left simultaneously
+    "zoom_in_up",         # zoom in + pan up simultaneously
+    "zoom_in_down",       # zoom in + pan down simultaneously
+    "zoom_out_right",     # zoom out + pan right
+    "zoom_out_left",      # zoom out + pan left
+    "slow_zoom_in",       # very gentle dreamy zoom
+    "fast_zoom_in",       # punchy dramatic zoom
+    "diagonal_tl_br",     # diagonal pan top-left to bottom-right
+    "diagonal_tr_bl",     # diagonal pan top-right to bottom-left
+    "drift_right",        # ultra-slow cinematic rightward drift
+    "drift_up",           # ultra-slow cinematic upward drift
+]
+
+# Transitions applied between clips (xfade filter)
+TRANSITIONS = [
+    "fade", "dissolve", "wipeleft", "wiperight", "wipeup", "wipedown",
+    "slideleft", "slideright", "circleopen", "pixelize",
+    "fadeblack", "horzopen", "vertopen",
+]
 
 # Models tried in order — first one that works is used
 _HF_MODELS = [
@@ -167,20 +193,71 @@ def animate_frame(img: Path, duration: float, effect: str, out: Path) -> Path:
         y_expr = "ih/2-(ih/zoom/2)"
     elif effect == "pan_right":
         zoom_expr = "1.2"
-        x_expr = f"(iw-iw/zoom)/2*on/{n_frames}"
+        x_expr = f"(iw-iw/zoom)*on/{n_frames}"
         y_expr = "ih/2-(ih/zoom/2)"
     elif effect == "pan_left":
         zoom_expr = "1.2"
-        x_expr = f"(iw-iw/zoom)/2*(1-on/{n_frames})"
+        x_expr = f"(iw-iw/zoom)*(1-on/{n_frames})"
         y_expr = "ih/2-(ih/zoom/2)"
     elif effect == "pan_up":
         zoom_expr = "1.2"
         x_expr = "iw/2-(iw/zoom/2)"
-        y_expr = f"(ih-ih/zoom)/2*(1-on/{n_frames})"
-    else:  # pan_down
+        y_expr = f"(ih-ih/zoom)*(1-on/{n_frames})"
+    elif effect == "pan_down":
         zoom_expr = "1.2"
         x_expr = "iw/2-(iw/zoom/2)"
-        y_expr = f"(ih-ih/zoom)/2*on/{n_frames}"
+        y_expr = f"(ih-ih/zoom)*on/{n_frames}"
+    elif effect == "zoom_in_right":
+        zoom_expr = f"1.0+0.3*on/{n_frames}"
+        x_expr = f"(iw-iw/zoom)*on/{n_frames}"
+        y_expr = "ih/2-(ih/zoom/2)"
+    elif effect == "zoom_in_left":
+        zoom_expr = f"1.0+0.3*on/{n_frames}"
+        x_expr = f"(iw-iw/zoom)*(1-on/{n_frames})"
+        y_expr = "ih/2-(ih/zoom/2)"
+    elif effect == "zoom_in_up":
+        zoom_expr = f"1.0+0.3*on/{n_frames}"
+        x_expr = "iw/2-(iw/zoom/2)"
+        y_expr = f"(ih-ih/zoom)*(1-on/{n_frames})"
+    elif effect == "zoom_in_down":
+        zoom_expr = f"1.0+0.3*on/{n_frames}"
+        x_expr = "iw/2-(iw/zoom/2)"
+        y_expr = f"(ih-ih/zoom)*on/{n_frames}"
+    elif effect == "zoom_out_right":
+        zoom_expr = f"1.3-0.3*on/{n_frames}"
+        x_expr = f"(iw-iw/zoom)*on/{n_frames}"
+        y_expr = "ih/2-(ih/zoom/2)"
+    elif effect == "zoom_out_left":
+        zoom_expr = f"1.3-0.3*on/{n_frames}"
+        x_expr = f"(iw-iw/zoom)*(1-on/{n_frames})"
+        y_expr = "ih/2-(ih/zoom/2)"
+    elif effect == "slow_zoom_in":
+        zoom_expr = f"1.0+0.15*on/{n_frames}"
+        x_expr = "iw/2-(iw/zoom/2)"
+        y_expr = "ih/2-(ih/zoom/2)"
+    elif effect == "fast_zoom_in":
+        zoom_expr = f"1.0+0.5*on/{n_frames}"
+        x_expr = "iw/2-(iw/zoom/2)"
+        y_expr = "ih/2-(ih/zoom/2)"
+    elif effect == "diagonal_tl_br":
+        zoom_expr = "1.25"
+        x_expr = f"(iw-iw/zoom)*on/{n_frames}"
+        y_expr = f"(ih-ih/zoom)*on/{n_frames}"
+    elif effect == "diagonal_tr_bl":
+        zoom_expr = "1.25"
+        x_expr = f"(iw-iw/zoom)*(1-on/{n_frames})"
+        y_expr = f"(ih-ih/zoom)*on/{n_frames}"
+    elif effect == "drift_right":
+        zoom_expr = "1.05"
+        x_expr = f"(iw-iw/zoom)*on/{n_frames}"
+        y_expr = "ih/2-(ih/zoom/2)"
+    else:  # drift_up
+        zoom_expr = "1.05"
+        x_expr = "iw/2-(iw/zoom/2)"
+        y_expr = f"(ih-ih/zoom)*(1-on/{n_frames})"
+
+    # Cinematic color grade: slight saturation boost + vignette
+    color_grade = "eq=saturation=1.25:contrast=1.05:brightness=0.02,vignette=PI/5"
 
     cmd = [
         "ffmpeg", "-y",
@@ -188,6 +265,7 @@ def animate_frame(img: Path, duration: float, effect: str, out: Path) -> Path:
         "-vf", (
             f"zoompan=z='{zoom_expr}':x='{x_expr}':y='{y_expr}'"
             f":d={n_frames}:s={w}x{h}:fps={fps}"
+            f",{color_grade}"
         ),
         "-t", str(duration),
         "-c:v", "libx264", "-preset", "fast", "-crf", "23",

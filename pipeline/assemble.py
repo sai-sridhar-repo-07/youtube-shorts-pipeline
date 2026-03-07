@@ -1,7 +1,7 @@
 import subprocess
 from pathlib import Path
 
-from pipeline.broll import animate_frame, EFFECTS
+from pipeline.broll import animate_frame, EFFECTS, TRANSITIONS
 from pipeline.music import get_audio_duration
 from pipeline.config import VIDEO_WIDTH, VIDEO_HEIGHT, FPS
 from pipeline.log import get_logger
@@ -241,6 +241,74 @@ def _assemble_with_music(
 
 
 # ---------------------------------------------------------------------------
+# Clip joining with xfade transitions
+# ---------------------------------------------------------------------------
+
+def _concat_with_transitions(
+    clips: list, clip_duration: float, out: Path, job_dir: Path,
+    transition_duration: float = 0.5,
+) -> None:
+    """Join clips with smooth xfade transitions between each pair."""
+    if len(clips) == 1:
+        import shutil
+        shutil.copy2(str(clips[0]), str(out))
+        return
+
+    # Build ffmpeg filter_complex chaining xfade for N clips
+    # offset_i = (i+1) * (clip_duration - transition_duration)
+    inputs = []
+    for c in clips:
+        inputs += ["-i", str(c)]
+
+    filter_parts = []
+    td = transition_duration
+    n = len(clips)
+
+    for i in range(n - 1):
+        transition = TRANSITIONS[i % len(TRANSITIONS)]
+        offset = round((i + 1) * (clip_duration - td), 4)
+        in_a = f"[v{i}]" if i > 0 else "[0:v]"
+        in_b = f"[{i+1}:v]"
+        out_label = f"[v{i+1}]"
+        filter_parts.append(
+            f"{in_a}{in_b}xfade=transition={transition}"
+            f":duration={td}:offset={offset}{out_label}"
+        )
+
+    filter_complex = ";".join(filter_parts)
+    final_label = f"[v{n-1}]"
+
+    cmd = (
+        ["ffmpeg", "-y"]
+        + inputs
+        + [
+            "-filter_complex", filter_complex,
+            "-map", final_label,
+            "-c:v", "libx264", "-preset", "fast", "-crf", "23", "-pix_fmt", "yuv420p",
+            str(out),
+        ]
+    )
+    result = subprocess.run(cmd, capture_output=True, text=True)
+    if result.returncode != 0:
+        log.warning(f"xfade transitions failed — falling back to plain concat: {result.stderr[-300:]}")
+        _plain_concat(clips, out)
+
+
+def _plain_concat(clips: list, out: Path) -> None:
+    """Fallback: plain cut concat with no transitions."""
+    import tempfile, os
+    with tempfile.NamedTemporaryFile("w", suffix=".txt", delete=False) as f:
+        for c in clips:
+            f.write(f"file '{c.resolve()}'\n")
+        tmp = f.name
+    subprocess.run(
+        ["ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", tmp, "-c", "copy", str(out)],
+        capture_output=True, check=True,
+    )
+    os.unlink(tmp)
+
+
+# ---------------------------------------------------------------------------
 # Main entry point
 # ---------------------------------------------------------------------------
 
@@ -259,30 +327,20 @@ def assemble_video(
     frame_duration = duration / len(frames)
     log.info(f"Total duration: {duration:.1f}s, {frame_duration:.1f}s per frame")
 
-    # Animate each frame
+    # Animate each frame — pick a unique effect per clip
     clips = []
     for i, frame in enumerate(frames):
         effect = EFFECTS[i % len(EFFECTS)]
         clip_out = job_dir / f"clip_{i}.mp4"
         if not clip_out.exists():
-            log.info(f"Animating frame {i+1}/{len(frames)} with effect: {effect}")
+            log.info(f"Animating frame {i+1}/{len(frames)} — effect: {effect}")
             animate_frame(frame, frame_duration, effect, clip_out)
         clips.append(clip_out)
 
-    # Concat clips → video_raw.mp4
-    concat_list = job_dir / "concat.txt"
-    with open(concat_list, "w") as f:
-        for clip in clips:
-            f.write(f"file '{clip.resolve()}'\n")
-
+    # Join clips with xfade transitions → video_raw.mp4
     concat_out = job_dir / "video_raw.mp4"
     if not concat_out.exists():
-        log.info("Concatenating clips…")
-        subprocess.run(
-            ["ffmpeg", "-y", "-f", "concat", "-safe", "0",
-             "-i", str(concat_list), "-c", "copy", str(concat_out)],
-            capture_output=True, check=True,
-        )
+        _concat_with_transitions(clips, frame_duration, concat_out, job_dir)
 
     # Assemble with audio
     final_out = job_dir / f"final_{job_id}.mp4"
