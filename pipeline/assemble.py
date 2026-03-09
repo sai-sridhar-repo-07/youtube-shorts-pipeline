@@ -337,10 +337,10 @@ def assemble_video(
             animate_frame(frame, frame_duration, effect, clip_out)
         clips.append(clip_out)
 
-    # Join clips with xfade transitions → video_raw.mp4
+    # Join clips → video_raw.mp4 (plain cut, no transitions)
     concat_out = job_dir / "video_raw.mp4"
     if not concat_out.exists():
-        _concat_with_transitions(clips, frame_duration, concat_out, job_dir)
+        _plain_concat(clips, concat_out)
 
     # Assemble with audio
     final_out = job_dir / f"final_{job_id}.mp4"

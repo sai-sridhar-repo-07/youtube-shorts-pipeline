@@ -6,8 +6,7 @@ from pipeline.config import load_config
 
 log = get_logger("draft")
 
-_SYSTEM = """You are a YouTube Shorts scriptwriter. You ONLY use facts from the <research> block.
-Never invent statistics or claims not in the research. Output valid JSON only, no markdown fences."""
+_SYSTEM = """You are a YouTube Shorts scriptwriter. Output ONLY valid JSON — no markdown fences, no explanation, no refusals, no extra text. Just the raw JSON object."""
 
 _PROMPT = """
 Topic: {topic}
@@ -18,11 +17,12 @@ Topic: {topic}
 
 {channel_context}
 
-Write a YouTube Short script about the topic using ONLY the research above.
+Write an engaging YouTube Short script about the topic above.
+Use the research if it is helpful. If the research is thin or irrelevant, use your own knowledge — do NOT refuse, do NOT explain, just write the script.
 
-Return a single JSON object with these exact keys:
+Return ONLY a single JSON object with these exact keys:
 {{
-  "script": "conversational voiceover, 150-180 words, punchy and engaging",
+  "script": "conversational voiceover, 150-180 words, punchy and engaging, starts with a hook",
   "broll_prompts": ["cinematic visual prompt 1", "cinematic visual prompt 2", "cinematic visual prompt 3", "cinematic visual prompt 4", "cinematic visual prompt 5", "cinematic visual prompt 6"],
   "youtube_title": "catchy title under 70 chars with relevant emoji",
   "youtube_description": "2-3 sentence description with hashtags",
