@@ -1275,8 +1275,12 @@ def _discover_topic(auto_pick: bool) -> str:
             unique.append(t)
 
     if auto_pick:
-        topic = unique[0]
-        log.info(f"Auto-selected topic: {topic}")
+        import datetime
+        now = datetime.datetime.utcnow()
+        # Use day*24+hour so 11am and 9:30pm always pick DIFFERENT topics
+        slot = (now.toordinal() * 24 + now.hour) % len(unique)
+        topic = unique[slot]
+        log.info(f"Auto-selected topic (slot {slot}/{len(unique)}): {topic}")
         return topic
 
     print("\nDiscovered topics:")
