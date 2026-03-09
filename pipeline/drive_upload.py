@@ -1,20 +1,20 @@
 """
 Google Drive → YouTube uploader.
 
-Downloads every video from a Drive folder, analyzes each one with Gemini
-to generate a title/description/tags, then uploads to YouTube as a public Short.
+Downloads every video from a Drive folder and uploads to YouTube as a public Short.
+All videos share a single caption (title/description/tags) — no Gemini analysis needed.
 No captions, no music, no voiceover — just your original video.
 
 Usage:
     python -m pipeline drive --folder <drive-folder-url-or-id>
-    python -m pipeline drive --folder <url> --limit 5   # only first 5 videos
+    python -m pipeline drive --folder <url> --limit 5
+    python -m pipeline drive --folder <url> --caption "My Animation #Shorts"
 """
 import re
-import subprocess
 import tempfile
 from pathlib import Path
 
-from pipeline.config import load_config, CONFIG_DIR
+from pipeline.config import CONFIG_DIR
 from pipeline.log import get_logger
 from pipeline.upload import upload_to_youtube
 
@@ -128,86 +128,12 @@ def _download_drive_file(file_id: str, dest: Path) -> None:
                 log.info(f"  Download progress: {pct}%")
 
 
-def _extract_middle_frame(video_path: Path, out_path: Path) -> bool:
-    """Extract a frame from the middle of the video for Gemini analysis."""
-    # Get duration
-    result = subprocess.run(
-        ["ffprobe", "-v", "error", "-show_entries", "format=duration",
-         "-of", "default=noprint_wrappers=1:nokey=1", str(video_path)],
-        capture_output=True, text=True,
-    )
-    try:
-        duration = float(result.stdout.strip())
-    except ValueError:
-        duration = 5.0
-    seek = max(0, duration / 2)
-
-    result = subprocess.run(
-        ["ffmpeg", "-y", "-ss", str(seek), "-i", str(video_path),
-         "-frames:v", "1", "-q:v", "2", str(out_path)],
-        capture_output=True,
-    )
-    return out_path.exists()
+_DEFAULT_CAPTION = "Amazing Animation 🎨 #Shorts"
+_DEFAULT_DESCRIPTION = "Stunning animation you won't forget! 🎬\n\n#Shorts #Animation #Art #Viral #Trending"
+_DEFAULT_TAGS = ["shorts", "animation", "art", "viral", "trending", "satisfying", "creative"]
 
 
-def _analyze_video_with_gemini(frame_path: Path, filename: str) -> dict:
-    """Send a frame to Gemini and get back title, description, tags."""
-    import base64
-    import json as _json
-    from google import genai as google_genai
-    from google.genai import types as genai_types
-
-    cfg = load_config()
-    api_key = cfg.get("GEMINI_API_KEY", "")
-    if not api_key:
-        raise ValueError("GEMINI_API_KEY not set in config")
-
-    client = google_genai.Client(api_key=api_key)
-    image_data = base64.b64encode(frame_path.read_bytes()).decode()
-
-    prompt = f"""You are a YouTube Shorts expert. Analyze this video frame (from a video named "{filename}") and generate metadata for uploading it as a YouTube Short.
-
-Return ONLY valid JSON with these exact keys:
-{{
-  "youtube_title": "Catchy title under 100 characters that will get clicks",
-  "youtube_description": "Engaging 2-3 sentence description. End with relevant hashtags.",
-  "youtube_tags": ["tag1", "tag2", "tag3", "tag4", "tag5"]
-}}
-
-Rules:
-- Title must be under 100 characters
-- Make it curiosity-driven and engaging
-- Tags should be relevant to the video content
-- Description should end with #Shorts"""
-
-    response = client.models.generate_content(
-        model="gemini-1.5-flash",
-        contents=[
-            genai_types.Part.from_bytes(data=base64.b64decode(image_data), mime_type="image/jpeg"),
-            prompt,
-        ],
-    )
-
-    text = response.text.strip()
-    # Strip markdown fences if present
-    text = re.sub(r"^```(?:json)?\s*", "", text)
-    text = re.sub(r"\s*```$", "", text)
-
-    try:
-        data = _json.loads(text)
-    except Exception:
-        log.warning(f"Gemini returned invalid JSON, using filename as title")
-        name = Path(filename).stem.replace("_", " ").replace("-", " ").title()
-        data = {
-            "youtube_title": name[:100],
-            "youtube_description": f"{name}\n\n#Shorts",
-            "youtube_tags": ["shorts", "viral", "trending"],
-        }
-
-    return data
-
-
-def upload_drive_folder(folder_url: str, limit: int = 0, skip_uploaded: bool = True) -> list[str]:
+def upload_drive_folder(folder_url: str, limit: int = 0, skip_uploaded: bool = True, caption: str = "") -> list[str]:
     """
     Main entry: download all videos from a Drive folder and upload to YouTube.
     Returns list of YouTube URLs.
@@ -218,6 +144,14 @@ def upload_drive_folder(folder_url: str, limit: int = 0, skip_uploaded: bool = T
     videos = _list_drive_videos(folder_id)
     if limit:
         videos = videos[:limit]
+
+    title = caption.strip() if caption.strip() else _DEFAULT_CAPTION
+    draft = {
+        "youtube_title": title[:100],
+        "youtube_description": _DEFAULT_DESCRIPTION,
+        "youtube_tags": _DEFAULT_TAGS,
+    }
+    log.info(f"Using caption for all videos: \"{title}\"")
 
     urls = []
     for i, video_file in enumerate(videos, 1):
@@ -241,26 +175,7 @@ def upload_drive_folder(folder_url: str, limit: int = 0, skip_uploaded: bool = T
                 log.warning(f"  Download failed: {e} — skipping")
                 continue
 
-            # 2. Analyze with Gemini
-            log.info(f"  Analyzing video with Gemini...")
-            draft = {}
-            frame_path = tmp / "frame.jpg"
-            try:
-                if _extract_middle_frame(video_path, frame_path):
-                    draft = _analyze_video_with_gemini(frame_path, name)
-                    log.info(f"  Title: {draft.get('youtube_title')}")
-                else:
-                    raise RuntimeError("Frame extraction failed")
-            except Exception as e:
-                log.warning(f"  Gemini analysis failed: {e} — using filename as title")
-                clean_name = Path(name).stem.replace("_", " ").replace("-", " ").title()
-                draft = {
-                    "youtube_title": clean_name[:100],
-                    "youtube_description": f"{clean_name}\n\n#Shorts",
-                    "youtube_tags": ["shorts", "viral"],
-                }
-
-            # 3. Upload to YouTube
+            # 2. Upload to YouTube (same caption for all videos)
             log.info(f"  Uploading to YouTube...")
             try:
                 url = upload_to_youtube(
@@ -272,7 +187,7 @@ def upload_drive_folder(folder_url: str, limit: int = 0, skip_uploaded: bool = T
                 urls.append(url)
                 _mark_uploaded(file_id)
                 log.info(f"  Uploaded: {url}")
-                print(f"\n✓ [{i}/{len(videos)}] {draft.get('youtube_title')}\n  {url}")
+                print(f"\n✓ [{i}/{len(videos)}] {title}\n  {url}")
             except Exception as e:
                 log.warning(f"  YouTube upload failed: {e}")
 

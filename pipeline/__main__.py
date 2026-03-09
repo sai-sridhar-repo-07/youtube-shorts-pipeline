@@ -1359,6 +1359,7 @@ def main() -> None:
     drive_p.add_argument("--folder", required=True, help="Google Drive folder URL or ID")
     drive_p.add_argument("--limit", type=int, default=0, help="Max videos to upload (0 = all)")
     drive_p.add_argument("--reupload", action="store_true", help="Re-upload already uploaded videos")
+    drive_p.add_argument("--caption", default="", help="Title to use for all uploaded videos (default: 'Amazing Animation #Shorts')")
 
     args = parser.parse_args()
 
@@ -1379,6 +1380,7 @@ def main() -> None:
             folder_url=args.folder,
             limit=args.limit,
             skip_uploaded=not args.reupload,
+            caption=args.caption,
         )
         print(f"\nDone. Uploaded {len(urls)} video(s).")
     else:
