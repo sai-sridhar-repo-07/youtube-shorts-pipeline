@@ -143,8 +143,6 @@ def upload_drive_folder(folder_url: str, limit: int = 0, skip_uploaded: bool = T
     log.info(f"Drive folder ID: {folder_id}")
 
     videos = _list_drive_videos(folder_id)
-    if limit:
-        videos = videos[:limit]
 
     title = caption.strip() if caption.strip() else _DEFAULT_CAPTION
     draft = {
@@ -155,7 +153,11 @@ def upload_drive_folder(folder_url: str, limit: int = 0, skip_uploaded: bool = T
     log.info(f"Using caption for all videos: \"{title}\"")
 
     urls = []
+    uploaded_count = 0
     for i, video_file in enumerate(videos, 1):
+        if limit and uploaded_count >= limit:
+            break
+
         file_id = video_file["id"]
         name = video_file["name"]
         log.info(f"\n[{i}/{len(videos)}] Processing: {name}")
@@ -187,6 +189,7 @@ def upload_drive_folder(folder_url: str, limit: int = 0, skip_uploaded: bool = T
                 )
                 urls.append(url)
                 _mark_uploaded(file_id)
+                uploaded_count += 1
                 log.info(f"  Uploaded: {url}")
                 print(f"\n✓ [{i}/{len(videos)}] {title}\n  YouTube: {url}")
             except Exception as e:
