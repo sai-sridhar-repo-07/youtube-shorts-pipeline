@@ -124,11 +124,21 @@ def run_pipeline(args) -> None:
     if force or not state.is_done("upload"):
         url = upload_to_youtube(final_video, draft, srt_path, thumbnail)
         state.mark_done("upload", youtube_url=url)
-        print(f"\n✓ Uploaded: {url}")
+        print(f"\n✓ YouTube: {url}")
     else:
         url = state.artifact("youtube_url")
         log.info("Skipping upload (already done)")
-        print(f"\n✓ Already uploaded: {url}")
+        print(f"\n✓ Already uploaded (YouTube): {url}")
+
+    # Upload to Instagram (if configured)
+    from pipeline.instagram_upload import upload_reel as _ig_upload, is_configured as _ig_configured
+    if _ig_configured():
+        try:
+            ig_caption = f"{draft.get('youtube_title', '')}\n\n#Shorts"
+            ig_url = _ig_upload(final_video, ig_caption)
+            print(f"✓ Instagram: {ig_url}")
+        except Exception as _ig_err:
+            log.warning(f"Instagram upload failed (non-fatal): {_ig_err}")
 
 
 _FALLBACK_TOPICS = [

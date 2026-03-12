@@ -36,7 +36,7 @@ jobs:
           chmod 600 ~/.shorts-pipeline/youtube_token.json
 
       - name: Upload 1 video from Drive
-        run: python -m pipeline drive --folder "${{ secrets.DRIVE_FOLDER_URL }}" --limit 1
+        run: python -m pipeline drive --folder "${{ secrets.DRIVE_FOLDER_URL }}" --limit 1 --caption "${{ secrets.DRIVE_CAPTION }}"
 
       - name: Save upload tracking (commit drive_uploaded.txt)
         run: |

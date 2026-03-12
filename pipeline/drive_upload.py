@@ -17,6 +17,7 @@ from pathlib import Path
 from pipeline.config import CONFIG_DIR
 from pipeline.log import get_logger
 from pipeline.upload import upload_to_youtube
+from pipeline.instagram_upload import upload_reel as instagram_upload_reel, is_configured as instagram_configured
 
 log = get_logger("drive_upload")
 
@@ -187,8 +188,20 @@ def upload_drive_folder(folder_url: str, limit: int = 0, skip_uploaded: bool = T
                 urls.append(url)
                 _mark_uploaded(file_id)
                 log.info(f"  Uploaded: {url}")
-                print(f"\n✓ [{i}/{len(videos)}] {title}\n  {url}")
+                print(f"\n✓ [{i}/{len(videos)}] {title}\n  YouTube: {url}")
             except Exception as e:
                 log.warning(f"  YouTube upload failed: {e}")
+                continue
+
+            # 3. Upload to Instagram (if configured)
+            if instagram_configured():
+                log.info(f"  Uploading to Instagram...")
+                try:
+                    ig_caption = f"{title}\n\n#Shorts #Animation #Art #Viral #Trending"
+                    ig_url = instagram_upload_reel(video_path, ig_caption)
+                    log.info(f"  Instagram: {ig_url}")
+                    print(f"  Instagram: {ig_url}")
+                except Exception as e:
+                    log.warning(f"  Instagram upload failed (non-fatal): {e}")
 
     return urls

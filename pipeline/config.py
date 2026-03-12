@@ -21,6 +21,8 @@ _DEFAULTS = {
     "VOICE_ID_EN": "21m00Tcm4TlvDq8ikWAM",
     "HF_TOKEN": "",
     "PEXELS_API_KEY": "",
+    "INSTAGRAM_ACCESS_TOKEN": "",
+    "INSTAGRAM_USER_ID": "",
     "channel_context": "",
     "topic_sources": {
         "reddit": {"enabled": True, "subreddits": ["technology", "worldnews", "science"]},
@@ -47,7 +49,8 @@ def load_config() -> dict:
             cfg[k] = v
 
     # Environment variables override config
-    for key in ("ANTHROPIC_API_KEY", "GEMINI_API_KEY", "ELEVENLABS_API_KEY", "VOICE_ID_EN", "HF_TOKEN"):
+    for key in ("ANTHROPIC_API_KEY", "GEMINI_API_KEY", "ELEVENLABS_API_KEY", "VOICE_ID_EN", "HF_TOKEN",
+                "INSTAGRAM_ACCESS_TOKEN", "INSTAGRAM_USER_ID"):
         env_val = os.environ.get(key)
         if env_val:
             cfg[key] = env_val
@@ -75,6 +78,8 @@ def setup_wizard() -> dict:
         ("ELEVENLABS_API_KEY", "ElevenLabs API key (for voiceover, optional — press Enter to skip)"),
         ("VOICE_ID_EN", "ElevenLabs Voice ID for English (press Enter for default)"),
         ("channel_context", "Channel context/niche (e.g. 'tech news for beginners', optional)"),
+        ("INSTAGRAM_ACCESS_TOKEN", "Instagram long-lived access token (optional — press Enter to skip)"),
+        ("INSTAGRAM_USER_ID", "Instagram User ID (numeric, optional — press Enter to skip)"),
     ]
 
     for key, label in prompts:
