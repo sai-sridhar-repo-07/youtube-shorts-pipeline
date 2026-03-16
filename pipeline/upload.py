@@ -52,16 +52,18 @@ def upload_to_youtube(
     if isinstance(tags, list):
         tags = tags[:500]
 
-    # Add #Shorts to description for YouTube Shorts algorithm
-    if "#Shorts" not in description:
-        description = description + "\n\n#Shorts"
+    # Ensure core Shorts hashtags are present
+    core_tags = ["#Shorts", "#Facts", "#DidYouKnow", "#Viral", "#MindBlown"]
+    for tag in core_tags:
+        if tag not in description:
+            description = description + f" {tag}"
 
     body = {
         "snippet": {
             "title": title,
             "description": description,
             "tags": tags,
-            "categoryId": "22",  # People & Blogs
+            "categoryId": "27",  # Education — best for facts/knowledge Shorts
         },
         "status": {
             "privacyStatus": "public",

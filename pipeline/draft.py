@@ -6,7 +6,7 @@ from pipeline.config import load_config
 
 log = get_logger("draft")
 
-_SYSTEM = """You are a YouTube Shorts scriptwriter. Output ONLY valid JSON — no markdown fences, no explanation, no refusals, no extra text. Just the raw JSON object."""
+_SYSTEM = """You are a viral YouTube Shorts scriptwriter. Output ONLY valid JSON — no markdown fences, no explanation, no refusals, no extra text. Just the raw JSON object."""
 
 _PROMPT = """
 Topic: {topic}
@@ -17,17 +17,42 @@ Topic: {topic}
 
 {channel_context}
 
-Write an engaging YouTube Short script about the topic above.
-Use the research if it is helpful. If the research is thin or irrelevant, use your own knowledge — do NOT refuse, do NOT explain, just write the script.
+Write a VIRAL YouTube Shorts script about the topic above.
+Use the research if helpful. If research is thin, use your own knowledge — never refuse, never explain, just write.
+
+STRICT RULES for the script:
+1. FIRST SENTENCE must be a pattern-interrupt hook that stops the scroll. Use one of these proven formats:
+   - "Nobody tells you this, but [shocking fact]..."
+   - "This will change how you see [topic] forever..."
+   - "The [topic] secret they don't want you to know..."
+   - "Scientists just discovered [shocking thing] and it changes everything..."
+   - "[Shocking statement]. And here's why that matters to you..."
+2. Sentences must be SHORT (max 10 words each). No long sentences.
+3. Every 2-3 sentences must reveal something NEW and surprising.
+4. End with a CLIFFHANGER or mind-blowing final fact that makes people comment.
+5. Total 140-160 words. Fast pace, punchy delivery.
+
+TITLE RULES — use one of these HIGH-CTR formulas:
+- "Why [X] Is [Shocking Thing] (Nobody Talks About This)"
+- "The Dark Truth About [X]"
+- "This [X] Fact Will Break Your Brain"
+- "What [Authority] Won't Tell You About [X]"
+- "Scientists Discovered [X] And It Changes Everything"
+- "[Number] Seconds That Will Change How You See [X]"
+Max 60 characters. Include one powerful emoji at the start or end.
+
+TAGS: include high-volume tags like facts, didyouknow, mindblown, learnontiktok, shorts, viral — plus topic-specific tags.
+
+DESCRIPTION: Start with the most shocking line from the script. Add 8-10 hashtags including #Shorts #Facts #DidYouKnow.
 
 Return ONLY a single JSON object with these exact keys:
 {{
-  "script": "conversational voiceover, 150-180 words, punchy and engaging, starts with a hook",
+  "script": "viral voiceover script following the rules above",
   "broll_prompts": ["cinematic visual prompt 1", "cinematic visual prompt 2", "cinematic visual prompt 3", "cinematic visual prompt 4", "cinematic visual prompt 5", "cinematic visual prompt 6"],
-  "youtube_title": "catchy title under 70 chars with relevant emoji",
-  "youtube_description": "2-3 sentence description with hashtags",
-  "youtube_tags": ["tag1", "tag2", "tag3", "tag4", "tag5"],
-  "thumbnail_prompt": "detailed visual prompt for a 16:9 thumbnail image"
+  "youtube_title": "high-CTR title under 60 chars using the formulas above",
+  "youtube_description": "hook line from script + 8-10 hashtags including #Shorts",
+  "youtube_tags": ["facts", "didyouknow", "mindblown", "shorts", "viral", "learnontiktok", "topic-tag-1", "topic-tag-2", "topic-tag-3", "topic-tag-4"],
+  "thumbnail_prompt": "bold, high-contrast thumbnail: shocked/amazed human face on left, large white bold text on right stating the shocking fact, vivid background"
 }}
 """
 
