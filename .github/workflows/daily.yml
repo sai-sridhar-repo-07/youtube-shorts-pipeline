@@ -2,8 +2,10 @@ name: Daily YouTube Shorts
 
 on:
   schedule:
-    - cron: '30 5 * * *'   # 11:00 AM IST (05:30 UTC)
-    - cron: '0 16 * * *'   # 9:30 PM IST (16:00 UTC)
+    - cron: '30 2 * * *'   # 8:00 AM IST  (02:30 UTC)
+    - cron: '30 6 * * *'   # 12:00 PM IST (06:30 UTC)
+    - cron: '30 11 * * *'  # 5:00 PM IST  (11:30 UTC)
+    - cron: '30 16 * * *'  # 10:00 PM IST (16:30 UTC)
   workflow_dispatch:        # allows manual trigger from GitHub UI
 
 jobs:
