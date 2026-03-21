@@ -5,7 +5,12 @@
       "Bash(pip install edge-tts)",
       "Bash(pip3 install edge-tts)",
       "Bash(python3 -m pip install edge-tts)",
-      "Bash(python3 -c \"from pipeline.broll import EFFECTS, TRANSITIONS; print\\(f''{len\\(EFFECTS\\)} effects, {len\\(TRANSITIONS\\)} transitions''\\)\")"
+      "Bash(python3 -c \"from pipeline.broll import EFFECTS, TRANSITIONS; print\\(f''{len\\(EFFECTS\\)} effects, {len\\(TRANSITIONS\\)} transitions''\\)\")",
+      "Read(//Users/saisridhartarra/.shorts-pipeline/**)",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\([k for k in d.keys\\(\\)]\\)\")"
+    ],
+    "additionalDirectories": [
+      "/Users/saisridhartarra/projects/Auto Deploy Youtube Shorts/.github/workflows"
     ]
   }
 }
