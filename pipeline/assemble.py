@@ -106,6 +106,7 @@ def _burn_captions_pil(video_in: Path, srt_path: Path, video_out: Path) -> None:
         "-map", "0:v",
         "-map", "1:a",
         "-c:v", "libx264", "-preset", "fast", "-crf", "23", "-pix_fmt", "yuv420p",
+        "-movflags", "+faststart",
         "-c:a", "copy",
         str(video_out),
     ]
@@ -199,6 +200,7 @@ def _assemble_voice_only(video: Path, voiceover: Path, out: Path, duration: floa
             "-map", "0:v",
             "-map", "1:a",
             "-c:v", "libx264", "-preset", "fast", "-crf", "23", "-pix_fmt", "yuv420p",
+            "-movflags", "+faststart",
             "-c:a", "aac", "-b:a", "128k",
             "-t", str(duration),
             str(out),
@@ -229,6 +231,7 @@ def _assemble_with_music(
             "-map", "0:v",
             "-map", "[audio_out]",
             "-c:v", "libx264", "-preset", "fast", "-crf", "23", "-pix_fmt", "yuv420p",
+            "-movflags", "+faststart",
             "-c:a", "aac", "-b:a", "128k",
             "-t", str(duration),
             str(out),
