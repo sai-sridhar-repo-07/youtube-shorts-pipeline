@@ -367,5 +367,36 @@ def assemble_video(
             if captioned_out.exists():
                 captioned_out.unlink()
 
+    # Burn channel logo watermark (bottom-right corner)
+    logo_path = Path(__file__).parent.parent / "assets" / "logo.png"
+    if logo_path.exists():
+        logo_out = job_dir / f"final_{job_id}_logo.mp4"
+        try:
+            log.info("Burning channel logo watermark...")
+            result = subprocess.run(
+                [
+                    "ffmpeg", "-y",
+                    "-i", str(final_out),
+                    "-i", str(logo_path),
+                    "-filter_complex",
+                    "[1:v]scale=260:-1[logo];[0:v][logo]overlay=W-w-24:H-h-60",
+                    "-c:v", "libx264", "-preset", "fast", "-crf", "23", "-pix_fmt", "yuv420p",
+                    "-movflags", "+faststart",
+                    "-c:a", "copy",
+                    str(logo_out),
+                ],
+                capture_output=True,
+            )
+            if result.returncode == 0:
+                final_out.unlink()
+                logo_out.rename(final_out)
+                log.info("Channel logo burned into video")
+            else:
+                log.warning(f"Logo overlay failed (non-fatal): {result.stderr[-200:]}")
+                if logo_out.exists():
+                    logo_out.unlink()
+        except Exception as e:
+            log.warning(f"Logo overlay failed (non-fatal): {e}")
+
     log.info(f"Final video: {final_out}")
     return final_out
